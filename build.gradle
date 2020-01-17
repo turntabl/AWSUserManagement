@@ -18,10 +18,17 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.cloud:spring-cloud-starter-aws'
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	implementation 'org.springframework.cloud:spring-boot-batch'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
+	compile group: 'com.amazonaws', name: 'aws-java-sdk-iam', version: '1.11.707'
+	compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.707'
+	compile group: 'com.amazonaws', name: 'aws-java-sdk-core', version: '1.11.500'
+	compile group: 'com.amazonaws', name: 'aws-java-sdk-bom', version: '1.11.707', ext: 'pom'
+
+
 }
 
 dependencyManagement {
