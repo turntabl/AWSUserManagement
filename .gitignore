@@ -31,4 +31,5 @@ out/
 ### VS Code ###
 .vscode/
 src/main/resources/credentials
-
+src/main/resources/aws-account-management-c0a8b44b1367.json
+aws-account-management-c0a8b44b1367.json
