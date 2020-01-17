@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Roles {
-    private static final ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile(new File("src/main/resources/credentials"));
+    private static final ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile(new File("credentials/aws"));
     private static final ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, "idawud");
 
     public static List<BasicRole> getAllAvailableRoles() {
