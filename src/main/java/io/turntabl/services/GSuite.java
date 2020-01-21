@@ -82,12 +82,11 @@ public class GSuite {
                             List<String> strings = Arrays.asList(value.split(","));
                             long count = strings.stream().filter(s -> Objects.equals(s.trim(), awsArn)).count();
                             if ( count == 0){
-                                System.out.println(strings);
-                                System.out.println(awsArn);
                                 String collect = strings.stream().filter(s -> !Objects.equals(s.trim(), awsArn)).collect(Collectors.joining(","));
                                 role.put("value", collect + "," + awsArn);
                             }
                         });
+
                         Directory service = getDirectory();
                         service.users().update(userId, user).execute();
                         return true;
