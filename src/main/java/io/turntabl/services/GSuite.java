@@ -51,8 +51,8 @@ public class GSuite {
 
         Directory.Users  usr = service.users();
         User dawud = usr.get("100262028487240433703").execute();
-        dawud.getNonEditableAliases().forEach(System.out::println);
-        Object phones = dawud.getPhones();
+
+        /*Object phones = dawud.getPhones();
         if( phones != null){
                 List<ArrayMap<String,Object>> objects = (List<ArrayMap<String,Object>>)phones;
                 for (ArrayMap<String,Object> object: objects){
@@ -61,12 +61,8 @@ public class GSuite {
                     }
                        // id.put(object.getKey(i), object.getValue(i));
                 }
-        }
-
-        System.out.println("***********************************************\n" );
-        System.out.println(dawud.getAliases() != null);
-
-
+        }*/
+ 
         // dawud.getIms()
         /*execute.getUsers().forEach(usr -> System.out.println(usr.getName().getFullName()));*/
     }
