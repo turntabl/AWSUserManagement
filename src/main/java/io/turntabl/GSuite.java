@@ -1,92 +1,74 @@
 package io.turntabl;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.client.util.ArrayMap;
 import com.google.api.services.admin.directory.Directory;
 import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.api.services.admin.directory.model.User;
-import com.google.api.services.admin.directory.model.Users;
+import com.google.api.services.admin.directory.model.UserPhone;
+import com.google.common.collect.ImmutableList;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
 import java.util.List;
 
 public class GSuite {
-    private static final String APPLICATION_NAME = "Google Admin SDK Directory API Java Quickstart";
+    private static final String APPLICATION_NAME = "Turntabl G suite - AWS Role Management";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
     /**
      * Global instance of the scopes required by this quickstart.
      * If modifying these scopes, delete your previously saved tokens/ folder.
      */
-    private static final List<String> SCOPES = Collections.singletonList(DirectoryScopes.ADMIN_DIRECTORY_USER_READONLY);
-    private static final String CREDENTIALS_FILE_PATH = "/aws-account-management-c0a8b44b1367.json";
+    private static final List<String> SCOPES = ImmutableList.of( DirectoryScopes.ADMIN_DIRECTORY_USER_READONLY, DirectoryScopes.ADMIN_DIRECTORY_USER);
+    private static final String CREDENTIALS_FILE_PATH = "aws-account-management-265416-84d47f654b81.json";
 
-    /**
-     * Creates an authorized Credential object.
-     * @param HTTP_TRANSPORT The network HTTP Transport.
-     * @return An authorized Credential object.
-     * @throws IOException If the credentials.json file cannot be found.
-     */
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
-        // Load client secrets.
-        InputStream in = GSuite.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-        if (in == null) {
-            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
-        }
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-
-        // Build flow and trigger user authorization request.
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .build();
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-    }
 
     public static void main(String... args) throws IOException, GeneralSecurityException {
-        InputStream in = GSuite.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-        if (in == null) {
-            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
-        }
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-        GoogleCredential cr = GoogleCredential
-                .fromStream(new FileInputStream("aws-account-management-c0a8b44b1367.json"))
-                .createScoped(SCOPES);
+        GoogleCredential gcFromJson = GoogleCredential
+                                            .fromStream(new FileInputStream(CREDENTIALS_FILE_PATH))
+                                            .createScoped(SCOPES);
 
-        cr.getServiceAccountScopes().forEach(System.out::println);
-    }
-       /* // Build a new authorized API client service.
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Directory service = new Directory.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                .setApplicationName(APPLICATION_NAME)
+        GoogleCredential credential = new GoogleCredential.Builder()
+                .setTransport(gcFromJson.getTransport())
+                .setJsonFactory(gcFromJson.getJsonFactory())
+                .setServiceAccountId(gcFromJson.getServiceAccountId())
+                .setServiceAccountUser("sam@turntabl.io")
+                .setServiceAccountPrivateKey(gcFromJson.getServiceAccountPrivateKey())
+                .setServiceAccountScopes(gcFromJson.getServiceAccountScopes())
+                .setTokenServerEncodedUrl(gcFromJson.getTokenServerEncodedUrl())
                 .build();
 
-        // Print the first 10 users in the domain.
-        Users result = service.users().list()
-                .setCustomer("my_customer")
-                .setMaxResults(10)
-                .setOrderBy("email")
-                .execute();
-        List<User> users = result.getUsers();
-        if (users == null || users.size() == 0) {
-            System.out.println("No users found.");
-        } else {
-            System.out.println("Users:");
-            for (User user : users) {
-                System.out.println(user.getName().getFullName());
-            }
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        Directory service = new Directory.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                                        .setApplicationName(APPLICATION_NAME)
+                                        .build();
+
+        Directory.Users  usr = service.users();
+        User dawud = usr.get("100262028487240433703").execute();
+        dawud.getNonEditableAliases().forEach(System.out::println);
+        Object phones = dawud.getPhones();
+        if( phones != null){
+                List<ArrayMap<String,Object>> objects = (List<ArrayMap<String,Object>>)phones;
+                for (ArrayMap<String,Object> object: objects){
+                    for (int i = 0; i < object.size(); i++){
+                        System.out.println(object.getKey(i) + " -> " + object.getValue(i));
+                    }
+                       // id.put(object.getKey(i), object.getValue(i));
+                }
         }
-    }*/
+
+        System.out.println("***********************************************\n" );
+        System.out.println(dawud.getAliases() != null);
+
+
+        // dawud.getIms()
+        /*execute.getUsers().forEach(usr -> System.out.println(usr.getName().getFullName()));*/
+    }
+
 }
