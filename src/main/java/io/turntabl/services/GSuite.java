@@ -82,36 +82,41 @@ public class GSuite {
      * @return boolean true for permission granted successful && false if the permission is already available or something went wrong
      */
     public static boolean addAWSARN(String userId, String awsArn){
-        try {
-            Map<String, User> allUserInfo = fetchAllUserInfo();
-            User user = allUserInfo.get(userId);
+        if ( awsArn.trim().startsWith("arn:aws:iam::")) {
+            try {
+                Map<String, User> allUserInfo = fetchAllUserInfo();
+                User user = allUserInfo.get(userId);
 
-            Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
-            if ( customSchemas != null){
-                Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
-                if ( o != null) {
-                    List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
+                Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
+                if (customSchemas != null) {
+                    Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
+                    if (o != null) {
+                        List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
 
-                    if (iam_role != null) {
-                        long count = iam_role.stream().map(role -> (String) role.get("value")).filter(val -> val.trim().startsWith(awsArn.trim())).count();
-                        if (count > 0) { return false; }
+                        if (iam_role != null) {
+                            long count = iam_role.stream().map(role -> (String) role.get("value")).filter(val -> val.trim().startsWith(awsArn.trim())).count();
+                            if (count > 0) {
+                                return false;
+                            }
 
-                        Permission permission = new Permission(awsArn);
-                        iam_role.add(permission.toMap());
+                            Permission permission = new Permission(awsArn);
+                            iam_role.add(permission.toMap());
 
-                        Directory service = getDirectory();
-                        service.users().update(userId, user).execute();
-                        return true;
+                            Directory service = getDirectory();
+                            service.users().update(userId, user).execute();
+                            return true;
+                        }
+                        return false;
                     }
                     return false;
                 }
                 return false;
+            } catch (IOException | GeneralSecurityException e) {
+                e.printStackTrace();
+                return false;
             }
-            return false;
-        } catch (IOException | GeneralSecurityException e) {
-            e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
 
@@ -122,40 +127,43 @@ public class GSuite {
      * @return boolean true for permission revoke successful && false if the permission to revoke isn't available or something went wrong
      */
     public static boolean removeAWSARN(String userId, String awsArn){
-        try {
-            Map<String, User> allUserInfo = fetchAllUserInfo();
-            User user = allUserInfo.get(userId);
+        if ( awsArn.trim().startsWith("arn:aws:iam::")) {
+            try {
+                Map<String, User> allUserInfo = fetchAllUserInfo();
+                User user = allUserInfo.get(userId);
 
-            Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
-            if ( customSchemas != null){
-                Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
-                if ( o != null) {
-                    List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
+                Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
+                if (customSchemas != null) {
+                    Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
+                    if (o != null) {
+                        List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
 
-                    if (iam_role != null) {
-                        Optional<Map<String, Object>> permision = iam_role.stream().filter(role -> {
-                            String value = (String) role.get("value");
-                            return value.trim().startsWith(awsArn.trim());
-                        }).findFirst();
+                        if (iam_role != null) {
+                            Optional<Map<String, Object>> permision = iam_role.stream().filter(role -> {
+                                String value = (String) role.get("value");
+                                return value.trim().startsWith(awsArn.trim());
+                            }).findFirst();
 
-                        if ( permision.isPresent()){
-                            iam_role.remove(permision.get());
-                            Directory service = getDirectory();
-                            service.users().update(userId, user).execute();
-                            return true;
+                            if (permision.isPresent()) {
+                                iam_role.remove(permision.get());
+                                Directory service = getDirectory();
+                                service.users().update(userId, user).execute();
+                                return true;
+                            }
+                            return false;
                         }
                         return false;
                     }
                     return false;
                 }
+
+                return false;
+            } catch (IOException | GeneralSecurityException e) {
+                e.printStackTrace();
                 return false;
             }
-
-            return false;
-        } catch (IOException | GeneralSecurityException e) {
-            e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
 

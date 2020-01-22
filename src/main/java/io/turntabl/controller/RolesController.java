@@ -5,14 +5,12 @@ import io.turntabl.models.PermissionStatus;
 import io.turntabl.models.UserProfileLight;
 import io.turntabl.services.GSuite;
 import io.turntabl.services.Roles;
-import io.turntabl.utilities.CommonMethods;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = {"GET"} )
