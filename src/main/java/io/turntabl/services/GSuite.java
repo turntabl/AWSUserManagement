@@ -10,6 +10,7 @@ import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.api.services.admin.directory.model.User;
 import com.google.common.collect.ImmutableList;
 import io.turntabl.models.Permission;
+import io.turntabl.models.UserProfileLight;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,36 +31,27 @@ public class GSuite {
 
     /**
      * Fetch all name and user ids Gsuite Users who are Engineers
-     * @return ap key -> a users name -> user id
+     * @return ap key -> a users id -> user username
      */
-    public static Map<String, String> fetchAllUsers(){
-        Map<String, String> users = new HashMap<>();
+    public static List<UserProfileLight> fetchAllUsers(){
+        // Map<String, String> users = new HashMap<>();
+        List<UserProfileLight> userProfileLights = new ArrayList<>();
         try {
-            fetchAllUserNameAndIds(users);
-            return users;
+            Directory service = getDirectory();
+            Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+            List<User> userList = usersInDomain.execute().getUsers();
+
+            userList.forEach(user -> {
+                if ( user.getOrgUnitPath().equals("/GH Tech")) {
+                    UserProfileLight profileLight = new UserProfileLight( user.getId(), user.getName().getFullName());
+                    userProfileLights.add(profileLight);
+                }
+            });
+            return userProfileLights;
         } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
-            return users;
+            return userProfileLights;
         }
-    }
-
-
-    /***
-     * fetch all engineers on Gsuite account
-     * @param users
-     * @throws IOException
-     * @throws GeneralSecurityException
-     */
-    private static void fetchAllUserNameAndIds(Map<String, String> users) throws IOException, GeneralSecurityException {
-        Directory service = getDirectory();
-        Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
-        List<User> userList = usersInDomain.execute().getUsers();
-
-        userList.forEach(user -> {
-            if ( user.getOrgUnitPath().equals("/GH Tech")) {
-                users.put(user.getName().getFullName(), user.getId());
-            }
-        });
     }
 
 
