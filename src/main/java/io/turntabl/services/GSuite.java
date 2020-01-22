@@ -34,7 +34,6 @@ public class GSuite {
      * @return ap key -> a users id -> user username
      */
     public static List<UserProfileLight> fetchAllUsers(){
-        // Map<String, String> users = new HashMap<>();
         List<UserProfileLight> userProfileLights = new ArrayList<>();
         try {
             Directory service = getDirectory();
@@ -147,7 +146,7 @@ public class GSuite {
      * @param awsArn aws Resource Name to be revoked
      * @return boolean true for permission revoke successful && false if the permission to revoke isn't available or something went wrong
      */
-    public static boolean removeAWSARN(String userId, String awsArn){
+    public static boolean revokeSingleAWSARN(String userId, String awsArn){
         if ( awsArn.trim().startsWith("arn:aws:iam::")) {
             try {
                 Directory service = getDirectory();
