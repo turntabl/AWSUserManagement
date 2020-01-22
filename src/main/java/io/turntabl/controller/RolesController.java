@@ -36,4 +36,13 @@ public class RolesController {
         boolean b = GSuite.addAWSARN(userId, arn);
         return new PermissionStatus(b);
     }
+
+    @GetMapping(value = "/v1/api/aws-mgnt/revoke", produces = "application/json")
+    public PermissionStatus revokePermission(
+            @RequestParam("userId") String userId,
+            @RequestParam("awsARN") String arn
+    ){
+        boolean b = GSuite.removeAWSARN(userId, arn);
+        return new PermissionStatus(b);
+    }
 }

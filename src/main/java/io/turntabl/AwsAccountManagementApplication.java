@@ -12,8 +12,6 @@ public class AwsAccountManagementApplication {
 
 	public static void main(String[] args) {
         // SpringApplication.run(AwsAccountManagementApplication.class, args);
-		Map<String, String> allUsers = GSuite.fetchAllUsers();
-		CommonMethods.MapToUserObject(allUsers);
 	}
 }
 
