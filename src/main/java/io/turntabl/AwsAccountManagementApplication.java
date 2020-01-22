@@ -13,7 +13,7 @@ import java.util.Map;
 public class AwsAccountManagementApplication {
 
 	public static void main(String[] args) throws IOException, GeneralSecurityException {
-		boolean b = GSuite.addAWSARN("102924368074115126817", "arn:aws:iam::926377470665:role/gsuite-elasticbeanstalk-fullaccess-role");
+		boolean b = GSuite.removeAWSARN("102924368074115126817", "arn:aws:iam::926377470665:role/gsuite-elasticbeanstalk-fullaccess-role");
 		System.out.println(b);
 
 		/*GSuite.fetchAllUserInfo().forEach( (s, user) -> {

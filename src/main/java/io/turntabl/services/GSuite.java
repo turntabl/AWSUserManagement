@@ -111,6 +111,19 @@ public class GSuite {
                     List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
 
                     if (iam_role != null) {
+
+                        // iam_role.stream().map(role -> (String) role.get("value")).filter(val -> val.trim().startsWith(awsArn.trim()))
+                        Optional<Map<String, Object>> permision = iam_role.stream().filter(role -> {
+                            String value = (String) role.get("value");
+                            return value.trim().startsWith(awsArn.trim());
+                        }).findFirst();
+
+                        if ( permision.isPresent()){
+                            iam_role.remove(permision.get());
+                            Directory service = getDirectory();
+                            service.users().update(userId, user).execute();
+                            return true;
+                        }
                         /*iam_role.forEach( role -> {
                             String value = (String) role.get("value");
                             List<String> strings = Arrays.asList(value.split(","));
@@ -119,7 +132,7 @@ public class GSuite {
                         });
                         Directory service = getDirectory();
                         service.users().update(userId, user).execute();*/
-                        return true;
+                        return false;
                     }
                     return false;
                 }
