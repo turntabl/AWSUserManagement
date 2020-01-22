@@ -84,8 +84,8 @@ public class GSuite {
     public static boolean addAWSARN(String userId, String awsArn){
         if ( awsArn.trim().startsWith("arn:aws:iam::")) {
             try {
-                Map<String, User> allUserInfo = fetchAllUserInfo();
-                User user = allUserInfo.get(userId);
+                Directory service = getDirectory();
+                User user = service.users().get(userId).setProjection("full").execute();
 
                 Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
                 if (customSchemas != null) {
@@ -102,7 +102,6 @@ public class GSuite {
                             Permission permission = new Permission(awsArn);
                             iam_role.add(permission.toMap());
 
-                            Directory service = getDirectory();
                             service.users().update(userId, user).execute();
                             return true;
                         }
@@ -129,8 +128,8 @@ public class GSuite {
     public static boolean removeAWSARN(String userId, String awsArn){
         if ( awsArn.trim().startsWith("arn:aws:iam::")) {
             try {
-                Map<String, User> allUserInfo = fetchAllUserInfo();
-                User user = allUserInfo.get(userId);
+                Directory service = getDirectory();
+                User user = service.users().get(userId).setProjection("full").execute();
 
                 Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
                 if (customSchemas != null) {
@@ -146,7 +145,6 @@ public class GSuite {
 
                             if (permision.isPresent()) {
                                 iam_role.remove(permision.get());
-                                Directory service = getDirectory();
                                 service.users().update(userId, user).execute();
                                 return true;
                             }
