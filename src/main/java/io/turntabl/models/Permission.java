@@ -10,8 +10,8 @@ public class Permission {
         this.value = value;
     }
 
-    public Map<String, String> toMap(){
-        Map<String, String> map = new HashMap<>();
+    public Map<String, Object> toMap(){
+        Map<String, Object> map = new HashMap<>();
         String type = "work";
         map.put("type", type);
         map.put("value", value + ", arn:aws:iam::926377470665:saml-provider/gsuite-idp");
