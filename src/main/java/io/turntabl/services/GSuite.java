@@ -9,48 +9,57 @@ import com.google.api.services.admin.directory.Directory;
 import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.api.services.admin.directory.model.User;
 import com.google.common.collect.ImmutableList;
+import io.turntabl.models.Permission;
+import io.turntabl.models.UserProfileLight;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GSuite {
+    /**
+     * Static instances used in multiple ways
+     */
     private static final String APPLICATION_NAME = "Turntabl G suite - AWS Role Management";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final List<String> SCOPES = ImmutableList.of( DirectoryScopes.ADMIN_DIRECTORY_USER_READONLY, DirectoryScopes.ADMIN_DIRECTORY_USER);
+    private static final String CREDENTIALS_FILE_PATH = "credentials/google.json";
+
+
 
     /**
-     * Global instance of the scopes required by this quickstart.
-     * If modifying these scopes, delete your previously saved tokens/ folder.
+     * Fetch all name and user ids Gsuite Users who are Engineers
+     * @return ap key -> a users id -> user username
      */
-    private static final List<String> SCOPES = ImmutableList.of( DirectoryScopes.ADMIN_DIRECTORY_USER_READONLY, DirectoryScopes.ADMIN_DIRECTORY_USER);
-    private static final String CREDENTIALS_FILE_PATH = "aws-account-management-265416-84d47f654b81.json";
-
-    public static Map<String, String> fetchAllUsers(){
-        Map<String, String> users = new HashMap<>();
+    public static List<UserProfileLight> fetchAllUsers(){
+        // Map<String, String> users = new HashMap<>();
+        List<UserProfileLight> userProfileLights = new ArrayList<>();
         try {
-            fetchAllUserNameAndIds(users);
-            return users;
+            Directory service = getDirectory();
+            Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+            List<User> userList = usersInDomain.execute().getUsers();
+
+            userList.forEach(user -> {
+                if ( user.getOrgUnitPath().equals("/GH Tech")) {
+                    UserProfileLight profileLight = new UserProfileLight( user.getId(), user.getName().getFullName());
+                    userProfileLights.add(profileLight);
+                }
+            });
+            return userProfileLights;
         } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
-            return users;
+            return userProfileLights;
         }
     }
 
-    private static void fetchAllUserNameAndIds(Map<String, String> users) throws IOException, GeneralSecurityException {
-        Directory service = getDirectory();
-        Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
-        List<User> userList = usersInDomain.execute().getUsers();
 
-        userList.forEach(user -> {
-            if ( user.getOrgUnitPath().equals("/GH Tech")) {
-                users.put(user.getName().getFullName(), user.getId());
-            }
-        });
-    }
-
-
+    /**
+     * Fetch all Gsuite Users who are Engineers with all their details
+     * @return Map key -> a users Id Value -> user profile
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
     public static Map<String, User> fetchAllUserInfo() throws IOException, GeneralSecurityException {
         Map<String, User> users = new HashMap<>();
         Directory service = getDirectory();
@@ -65,80 +74,105 @@ public class GSuite {
         return users;
     }
 
+
+    /**
+     * Grant aws role or policy permission of a user
+     * @param userId id of Gsuite User
+     * @param awsArn aws Resource Name to be granted permission to
+     * @return boolean true for permission granted successful && false if the permission is already available or something went wrong
+     */
     public static boolean addAWSARN(String userId, String awsArn){
-        try {
-            Map<String, User> allUserInfo = fetchAllUserInfo();
-            User user = allUserInfo.get(userId);
+        if ( awsArn.trim().startsWith("arn:aws:iam::")) {
+            try {
+                Map<String, User> allUserInfo = fetchAllUserInfo();
+                User user = allUserInfo.get(userId);
 
-            Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
-            if ( customSchemas != null){
-                Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
-                if ( o != null) {
-                    List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
+                Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
+                if (customSchemas != null) {
+                    Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
+                    if (o != null) {
+                        List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
 
-                    if (iam_role != null) {
-                        iam_role.forEach( role -> {
-                            String value = (String) role.get("value");
-                            List<String> strings = Arrays.asList(value.split(","));
-                            long count = strings.stream().filter(s -> Objects.equals(s.trim(), awsArn)).count();
-                            if ( count == 0){
-                                String collect = strings.stream().filter(s -> !Objects.equals(s.trim(), awsArn)).collect(Collectors.joining(","));
-                                role.put("value", collect + "," + awsArn);
+                        if (iam_role != null) {
+                            long count = iam_role.stream().map(role -> (String) role.get("value")).filter(val -> val.trim().startsWith(awsArn.trim())).count();
+                            if (count > 0) {
+                                return false;
                             }
-                        });
 
-                        Directory service = getDirectory();
-                        service.users().update(userId, user).execute();
-                        return true;
-                        // System.out.println(user);
+                            Permission permission = new Permission(awsArn);
+                            iam_role.add(permission.toMap());
+
+                            Directory service = getDirectory();
+                            service.users().update(userId, user).execute();
+                            return true;
+                        }
+                        return false;
                     }
                     return false;
                 }
                 return false;
+            } catch (IOException | GeneralSecurityException e) {
+                e.printStackTrace();
+                return false;
             }
-
-            return false;
-        } catch (IOException | GeneralSecurityException e) {
-            e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
+
+    /**
+     * Revoke aws role or policy permission of a user
+     * @param userId id of Gsuite User
+     * @param awsArn aws Resource Name to be revoked
+     * @return boolean true for permission revoke successful && false if the permission to revoke isn't available or something went wrong
+     */
     public static boolean removeAWSARN(String userId, String awsArn){
-        try {
-            Map<String, User> allUserInfo = fetchAllUserInfo();
-            User user = allUserInfo.get(userId);
+        if ( awsArn.trim().startsWith("arn:aws:iam::")) {
+            try {
+                Map<String, User> allUserInfo = fetchAllUserInfo();
+                User user = allUserInfo.get(userId);
 
-            Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
-            if ( customSchemas != null){
-                Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
-                if ( o != null) {
-                    List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
+                Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
+                if (customSchemas != null) {
+                    Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
+                    if (o != null) {
+                        List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
 
-                    if (iam_role != null) {
-                        iam_role.forEach( role -> {
-                            String value = (String) role.get("value");
-                            List<String> strings = Arrays.asList(value.split(","));
-                            String collect = strings.stream().filter(s -> !Objects.equals(s.trim(), awsArn)).collect(Collectors.joining(","));
-                            role.put("value", collect);
-                        });
-                        Directory service = getDirectory();
-                        service.users().update(userId, user).execute();
-                        return true;
-                        // System.out.println(user);
+                        if (iam_role != null) {
+                            Optional<Map<String, Object>> permision = iam_role.stream().filter(role -> {
+                                String value = (String) role.get("value");
+                                return value.trim().startsWith(awsArn.trim());
+                            }).findFirst();
+
+                            if (permision.isPresent()) {
+                                iam_role.remove(permision.get());
+                                Directory service = getDirectory();
+                                service.users().update(userId, user).execute();
+                                return true;
+                            }
+                            return false;
+                        }
+                        return false;
                     }
                     return false;
                 }
+
+                return false;
+            } catch (IOException | GeneralSecurityException e) {
+                e.printStackTrace();
                 return false;
             }
-
-            return false;
-        } catch (IOException | GeneralSecurityException e) {
-            e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
+
+    /**
+     * Returns a directory instance that is used to get acccess too the resources on the Gsuite account, such as user, grops etc
+     * @return Directory
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
     private static Directory getDirectory() throws IOException, GeneralSecurityException {
         GoogleCredential gcFromJson = GoogleCredential
                                             .fromStream(new FileInputStream(CREDENTIALS_FILE_PATH))
