@@ -24,7 +24,7 @@ public class GSuite {
     private static final String APPLICATION_NAME = "Turntabl G suite - AWS Role Management";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final List<String> SCOPES = ImmutableList.of( DirectoryScopes.ADMIN_DIRECTORY_USER_READONLY, DirectoryScopes.ADMIN_DIRECTORY_USER);
-    private static final String CREDENTIALS_FILE_PATH = "aws-account-management-265416-84d47f654b81.json";
+    private static final String CREDENTIALS_FILE_PATH = "credentials/google.json";
 
 
 
