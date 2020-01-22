@@ -32,5 +32,5 @@ out/
 .vscode/
 src/main/resources/credentials
 src/main/resources/aws-account-management-265416-84d47f654b81.json
-aws-account-management-265416-84d47f654b81.json
 dump
+.elasticbeanstalk/
