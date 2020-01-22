@@ -3,12 +3,7 @@ package io.turntabl.models;
 public class PermissionStatus {
     private String status;
 
-    public PermissionStatus() {
-    }
-
-    public PermissionStatus(String status) {
-        this.status = status;
-    }
+    public PermissionStatus() { }
 
     public PermissionStatus(boolean state) {
         if (state){
