@@ -18,16 +18,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GSuite {
+    /**
+     * Static instances used in multiple ways
+     */
     private static final String APPLICATION_NAME = "Turntabl G suite - AWS Role Management";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-
-    /**
-     * Global instance of the scopes required by this quickstart.
-     * If modifying these scopes, delete your previously saved tokens/ folder.
-     */
     private static final List<String> SCOPES = ImmutableList.of( DirectoryScopes.ADMIN_DIRECTORY_USER_READONLY, DirectoryScopes.ADMIN_DIRECTORY_USER);
     private static final String CREDENTIALS_FILE_PATH = "aws-account-management-265416-84d47f654b81.json";
 
+
+
+    /**
+     * Fetch all name and user ids Gsuite Users who are Engineers
+     * @return ap key -> a users name -> user id
+     */
     public static Map<String, String> fetchAllUsers(){
         Map<String, String> users = new HashMap<>();
         try {
@@ -39,6 +43,13 @@ public class GSuite {
         }
     }
 
+
+    /***
+     * fetch all engineers on Gsuite account
+     * @param users
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
     private static void fetchAllUserNameAndIds(Map<String, String> users) throws IOException, GeneralSecurityException {
         Directory service = getDirectory();
         Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
@@ -52,6 +63,12 @@ public class GSuite {
     }
 
 
+    /**
+     * Fetch all Gsuite Users who are Engineers with all their details
+     * @return Map key -> a users Id Value -> user profile
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
     public static Map<String, User> fetchAllUserInfo() throws IOException, GeneralSecurityException {
         Map<String, User> users = new HashMap<>();
         Directory service = getDirectory();
@@ -66,6 +83,13 @@ public class GSuite {
         return users;
     }
 
+
+    /**
+     * Grant aws role or policy permission of a user
+     * @param userId id of Gsuite User
+     * @param awsArn aws Resource Name to be granted permission to
+     * @return boolean true for permission granted successful && false if the permission is already available or something went wrong
+     */
     public static boolean addAWSARN(String userId, String awsArn){
         try {
             Map<String, User> allUserInfo = fetchAllUserInfo();
@@ -99,6 +123,13 @@ public class GSuite {
         }
     }
 
+
+    /**
+     * Revoke aws role or policy permission of a user
+     * @param userId id of Gsuite User
+     * @param awsArn aws Resource Name to be revoked
+     * @return boolean true for permission revoke successful && false if the permission to revoke isn't available or something went wrong
+     */
     public static boolean removeAWSARN(String userId, String awsArn){
         try {
             Map<String, User> allUserInfo = fetchAllUserInfo();
@@ -136,6 +167,13 @@ public class GSuite {
         }
     }
 
+
+    /**
+     * Returns a directory instance that is used to get acccess too the resources on the Gsuite account, such as user, grops etc
+     * @return Directory
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
     private static Directory getDirectory() throws IOException, GeneralSecurityException {
         GoogleCredential gcFromJson = GoogleCredential
                                             .fromStream(new FileInputStream(CREDENTIALS_FILE_PATH))
