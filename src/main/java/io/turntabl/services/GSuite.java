@@ -78,10 +78,9 @@ public class GSuite {
                     List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
 
                     if (iam_role != null) {
-
                         long count = iam_role.stream().map(role -> (String) role.get("value")).filter(val -> val.trim().startsWith(awsArn.trim())).count();
-
                         if (count > 0) { return false; }
+
                         Permission permission = new Permission(awsArn);
                         iam_role.add(permission.toMap());
 
@@ -93,7 +92,6 @@ public class GSuite {
                 }
                 return false;
             }
-
             return false;
         } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
@@ -113,16 +111,15 @@ public class GSuite {
                     List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
 
                     if (iam_role != null) {
-                        iam_role.forEach( role -> {
+                        /*iam_role.forEach( role -> {
                             String value = (String) role.get("value");
                             List<String> strings = Arrays.asList(value.split(","));
                             String collect = strings.stream().filter(s -> !Objects.equals(s.trim(), awsArn)).collect(Collectors.joining(","));
                             role.put("value", collect);
                         });
                         Directory service = getDirectory();
-                        service.users().update(userId, user).execute();
+                        service.users().update(userId, user).execute();*/
                         return true;
-                        // System.out.println(user);
                     }
                     return false;
                 }
