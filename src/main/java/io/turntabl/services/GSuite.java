@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GSuite {
     /**
@@ -76,12 +77,33 @@ public class GSuite {
 
 
     /**
+     * Fetch all Gsuite Users who are Engineers with all their details
+     * @return Map key -> a users Id Value -> user profile
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
+    public static Map<String, String> fetchEmailToIds() throws IOException, GeneralSecurityException {
+        Map<String, String> users = new HashMap<>();
+        Directory service = getDirectory();
+        Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+        List<User> userList = usersInDomain.execute().getUsers();
+
+        userList.forEach(user -> {
+            if ( user.getOrgUnitPath().equals("/GH Tech")) {
+                users.put(user.getPrimaryEmail(), user.getId());
+            }
+        });
+        return users;
+    }
+
+
+    /**
      * Grant aws role or policy permission of a user
      * @param userId id of Gsuite User
      * @param awsArn aws Resource Name to be granted permission to
      * @return boolean true for permission granted successful && false if the permission is already available or something went wrong
      */
-    public static boolean addAWSARN(String userId, String awsArn){
+    public static boolean addSingleAWSARN(String userId, String awsArn){
         if ( awsArn.trim().startsWith("arn:aws:iam::")) {
             try {
                 Directory service = getDirectory();
@@ -190,6 +212,85 @@ public class GSuite {
         return new Directory.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                                         .setApplicationName(APPLICATION_NAME)
                                         .build();
+    }
+
+    /**
+     * Add multiple roles to a single user
+     * @param userId -> the user gsuite id
+     * @param awsArns -> list of arns to be added
+     */
+    public static void grantMultipleAWSARN(String userId, Set<String> awsArns) {
+        try {
+            Directory service = getDirectory();
+            User user = service.users().get(userId).setProjection("full").execute();
+
+            Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
+            if (customSchemas != null) {
+                Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
+                if (o != null) {
+                    List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
+
+                    if (iam_role != null) {
+
+                        awsArns.forEach( arn -> {
+                            long count = iam_role.stream().filter(role -> {
+                                String value = (String) role.get("value");
+                                return value.trim().startsWith(arn.trim());
+                            }).count();
+
+                            if ( count == 0) {
+                                Permission permission = new Permission(arn);
+                                iam_role.add(permission.toMap());
+                            }
+                        });
+
+                        // update
+                        service.users().update(userId, user).execute();
+                    }
+                }
+            }
+        } catch (IOException | GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * revoke multiple roles to a single user
+     * @param userId -> the user gsuite id
+     * @param awsArns -> list of arns to be added
+     */
+    public static void revokeMultipleAWSARN(String userId, Set<String> awsArns) {
+        try {
+            Directory service = getDirectory();
+            User user = service.users().get(userId).setProjection("full").execute();
+
+            Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
+            if (customSchemas != null) {
+                Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
+                if (o != null) {
+                    List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
+
+                    if (iam_role != null) {
+
+                         iam_role.stream().filter(role -> {
+                            String value = (String) role.get("value");
+                            return awsArnsContains(awsArns, value);
+                        }).forEach(iam_role::remove);
+
+                         // update
+                        service.users().update(userId, user).execute();
+                    }
+                }
+            }
+        } catch (IOException | GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean awsArnsContains(Set<String> awsArns, String value) {
+        long count = awsArns.stream().filter(arn -> value.trim().startsWith(arn.trim())).count();
+        return count > 0;
     }
 
 }

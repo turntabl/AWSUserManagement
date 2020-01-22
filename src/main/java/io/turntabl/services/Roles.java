@@ -24,7 +24,7 @@ public class Roles {
                 .withCredentials(credentialsProvider)
                 .build();
         iam.listRoles().getRoles().forEach(role -> {
-                BasicRole basicRole = new BasicRole(role.getRoleName(), role.getArn());
+                BasicRole basicRole = new BasicRole(role.getRoleName(), role.getArn(), role.getDescription());
                 roles.add(basicRole);
         });
        return roles;
