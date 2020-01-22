@@ -18,17 +18,17 @@ import java.util.Map;
 @CrossOrigin(origins = "*", allowedHeaders = {"GET"} )
 public class RolesController {
 
-    @GetMapping("/v1/api/aws-mgnt/roles")
+    @GetMapping(value = "/v1/api/aws-mgnt/roles", produces = "application/json")
     public List<BasicRole> allRoles(){
         return Roles.getAllAvailableRoles();
     }
 
-    @GetMapping("/v1/api/aws-mgnt/users")
+    @GetMapping(value = "/v1/api/aws-mgnt/users", produces = "application/json")
     public List<UserProfileLight> getAllUsers(){
         return  GSuite.fetchAllUsers();
     }
 
-    @GetMapping("/v1/api/aws-mgnt/grant")
+    @GetMapping(value = "/v1/api/aws-mgnt/grant", produces = "application/json")
     public PermissionStatus grantPermission(
             @RequestParam("userId") String userId,
             @RequestParam("awsARN") String arn
