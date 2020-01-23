@@ -35,10 +35,11 @@ public class PermissionStorage {
      * @param userEmail
      * @param arnsRequest
      */
-    public void insert(String collectionName, String userEmail, Set<String> arnsRequest){
+    public Document insert(String collectionName, String userEmail, Set<String> arnsRequest){
         MongoCollection<Document> collection = database.getCollection(collectionName);
         Document document = new Document("userEmail", userEmail).append("arnsRequest", arnsRequest).append("timestamp", LocalDateTime.now()).append("status", "PENDING");
         collection.insertOne(document);
+        return document;
     }
 
     /**
@@ -68,4 +69,13 @@ public class PermissionStorage {
         return records;
     }
 
+    public Document removeRequest(String collectionName, String requestId) {
+        MongoCollection<Document> collection = database.getCollection(collectionName);
+        return collection.findOneAndDelete(Filters.eq("_id", requestId));
+    }
+
+    public Document getRequestDetails(String collectionName, String requestId) {
+        MongoCollection<Document> collection = database.getCollection(collectionName);
+        return collection.find(Filters.eq("_id", requestId)).first();
+    }
 }
