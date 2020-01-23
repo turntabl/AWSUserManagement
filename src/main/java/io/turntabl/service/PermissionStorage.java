@@ -1,22 +1,30 @@
 package io.turntabl.service;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PermissionStorage {
-    private MongoCredential credential = MongoCredential.createCredential("dawud-ismail", "mydatabase", "password".toCharArray());
-    private static MongoClient CLIENT = new MongoClient("localhost", 27017);
+    // private static String client_url = "mongodb://" +  System.getenv("ME_CONFIG_MONGODB_ADMINUSERNAME") + ":" +  System.getenv("ME_CONFIG_MONGODB_ADMINPASSWORD") + "@" + "turntabl.io:27017/" + "permissions";
     private MongoDatabase database;
 
+    private static MongoClient CLIENT = new MongoClient(
+        new MongoClientURI("mongodb://mongo:27017/" + "permissions")
+    );
+
+
     public PermissionStorage() {
-        this.database = CLIENT.getDatabase("permisssions");
+        System.out.println( System.getenv("ME_CONFIG_MONGODB_ADMINUSERNAME"));
+        this.database = CLIENT.getDatabase("permissions");
     }
 
     /**
@@ -41,5 +49,21 @@ public class PermissionStorage {
         collection.updateOne(Filters.eq("userEmail", userEmail), Updates.set("status", status));
     }
 
+    /**
+     * Keep collectionName -> requests
+     * @param collectionName
+     * @return
+     */
+    public List<Document> fetchAllRecords(String collectionName) {
+        MongoCollection<Document> collection = database.getCollection(collectionName);
+        FindIterable<Document> iterable = collection.find();
+
+        List<Document> records = new ArrayList<>();
+
+        for (Document document : iterable) {
+           records.add(document);
+        }
+        return records;
+    }
 
 }

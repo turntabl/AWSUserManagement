@@ -3,19 +3,17 @@ version: '3.1'
 services:
   permission:
     build: .
-    networks:
-      - my-network
+    restart: always
+    container_name: permission
     ports:
-      - 5000:5000
+      - 8080:5000
+    links:
+      - mongodb
     depends_on:
       - mongodb
   mongodb:
     image: mongo:4.0.5
-    networks:
-      - my-network
+    container_name: mongo
+    restart: always
     ports:
       - 27017:27017
-
-networks:
-  my-network:
-    driver: bridge
