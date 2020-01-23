@@ -6,8 +6,12 @@ import io.turntabl.models.BasicRole;
 import io.turntabl.models.PermissionStatus;
 import io.turntabl.models.RolesRequest;
 import io.turntabl.models.UserProfileLight;
+import io.turntabl.services.EMail;
+import io.turntabl.services.PermissionStorage;
 import io.turntabl.services.GSuite;
 import io.turntabl.services.Roles;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -18,6 +22,23 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = {"GET"} )
 public class RolesController {
+    @Autowired
+    private PermissionStorage permissionStorage;
+
+    @Autowired
+    public EMail eMail;
+
+    @ApiOperation("user submits list of aws arns to be given access to..")
+    @PostMapping(value = "/v1/api/aws-mgnt/send", consumes = "application/json", produces = "application/json")
+    public PermissionStatus sendPermission(@RequestBody RolesRequest rolesRequest){
+        try {
+            permissionStorage.insert("requests", rolesRequest.getEmail(), rolesRequest.getAwsArns());
+            eMail.send(rolesRequest.getEmail(), rolesRequest.getAwsArns());
+            return new PermissionStatus(true);
+        }catch (Exception e){
+            return new PermissionStatus(false);
+        }
+    }
 
     @ApiOperation("get all roles on the aws account")
     @GetMapping(value = "/v1/api/aws-mgnt/roles", produces = "application/json")

@@ -19,6 +19,7 @@ ext {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	// implementation 'org.springframework.boot:spring-boot-starter-batch'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
@@ -34,7 +35,6 @@ dependencies {
 	compile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
 	compile group: 'com.google.guava', name: 'guava', version: '28.2-jre'
 	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.1'
-
 
 }
 

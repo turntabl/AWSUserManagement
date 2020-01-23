@@ -1,4 +1,4 @@
-package io.turntabl.service;
+package io.turntabl.services;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -10,7 +10,9 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.List;
 
 public class PermissionStorage {
@@ -33,9 +35,9 @@ public class PermissionStorage {
      * @param userEmail
      * @param arnsRequest
      */
-    public void insert(String collectionName, String userEmail, List<String> arnsRequest){
+    public void insert(String collectionName, String userEmail, Set<String> arnsRequest){
         MongoCollection<Document> collection = database.getCollection(collectionName);
-        Document document = new Document("userEmail", userEmail).append("arnsRequest", arnsRequest).append("status", "PENDING");
+        Document document = new Document("userEmail", userEmail).append("arnsRequest", arnsRequest).append("timestamp", LocalDateTime.now()).append("status", "PENDING");
         collection.insertOne(document);
     }
 
