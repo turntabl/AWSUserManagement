@@ -7,12 +7,11 @@ import io.turntabl.models.PermissionStatus;
 import io.turntabl.models.RolesRequest;
 import io.turntabl.models.UserProfileLight;
 import io.turntabl.services.EMail;
-import io.turntabl.services.PermissionStorage;
 import io.turntabl.services.GSuite;
+import io.turntabl.services.PermissionStorage;
 import io.turntabl.services.Roles;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
@@ -30,7 +29,6 @@ public class RolesController {
 
     @Autowired
     public EMail eMail;
-    private Class<Object> Set;
 
     @ApiOperation("user submits list of aws arns to be given access to..")
     @PostMapping(value = "/v1/api/aws-mgnt/send", consumes = "application/json", produces = "application/json")
@@ -49,7 +47,10 @@ public class RolesController {
     public PermissionStatus approve(  @PathVariable("requestId") String requestId ){
         try {
             Document request = permissionStorage.getRequestDetails("requests", requestId);
-            permissionStorage.statusUpdate("requests", requestId, "APPROVED");
+            boolean updateStatus = permissionStorage.statusUpdate("requests", requestId, "APPROVED");
+            if ( !updateStatus){
+                return new PermissionStatus(false);
+            }
             String userEmail = request.getString("userEmail");
             Set<String> awsArns = (Set<String>) request.get("awsArns");
            GSuite.grantMultipleAWSARN(userEmail, awsArns);
@@ -62,15 +63,12 @@ public class RolesController {
         }
     }
 
-    @ApiOperation("approve a request to gain permission to a set of services")
+    @ApiOperation("decline a request to gain permission to a set of services")
     @GetMapping(value = "/v1/api/aws-mgnt/decline/{requestId}", produces = "application/json")
     public PermissionStatus decline(  @PathVariable("requestId") String requestId ){
         try {
             Document request = permissionStorage.removeRequest("requests", requestId);
             String userEmail = request.getString("userEmail");
-            Set<String> awsArns = (Set<String>) request.get("awsArns");
-            GSuite.revokeMultipleAWSARN(userEmail, awsArns);
-
             eMail.send(userEmail, false);
             return new PermissionStatus(true);
         } catch (MessagingException e) {

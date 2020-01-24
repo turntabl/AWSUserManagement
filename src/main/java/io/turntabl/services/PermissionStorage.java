@@ -8,6 +8,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 
 import java.time.LocalDateTime;
@@ -47,9 +48,13 @@ public class PermissionStorage {
      * @param collectionName
      * @param userEmail
      */
-    public void statusUpdate(String collectionName, String userEmail, String status){
+    public boolean statusUpdate(String collectionName, String userEmail, String status){
         MongoCollection<Document> collection = database.getCollection(collectionName);
-        collection.updateOne(Filters.eq("userEmail", userEmail), Updates.set("status", status));
+        Document first = collection.find(Filters.eq("userEmail", userEmail)).first();
+        assert first != null;
+        first.append("status", status).append("timestamp", LocalDateTime.now());
+        UpdateResult userEmail1 = collection.updateOne(Filters.eq("userEmail", userEmail), Updates.setOnInsert(first));
+        return userEmail1.wasAcknowledged();
     }
 
     /**
@@ -77,5 +82,14 @@ public class PermissionStorage {
     public Document getRequestDetails(String collectionName, String requestId) {
         MongoCollection<Document> collection = database.getCollection(collectionName);
         return collection.find(Filters.eq("_id", requestId)).first();
+    }
+
+    public List<Document> approvedPermissions(String collectionName){
+        MongoCollection<Document> collection = database.getCollection(collectionName);
+        List<Document> approvedList = new ArrayList<>();
+        for (Document document : collection.find()){
+            approvedList.add(document);
+        }
+        return approvedList;
     }
 }
