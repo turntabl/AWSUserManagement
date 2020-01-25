@@ -151,8 +151,8 @@ public class GSuite {
             try {
                 Directory service = getDirectory();
                 User user = service.users().get(userId).setProjection("full").execute();
-
                 Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
+
                 if (customSchemas != null) {
                     Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
                     if (o != null) {
@@ -215,12 +215,14 @@ public class GSuite {
 
     /**
      * Add multiple roles to a single user
-     * @param userId -> the user gsuite id
+     * @param userEmail -> the user gsuite id
      * @param awsArns -> list of arns to be added
      */
-    public static void grantMultipleAWSARN(String userId, Set<String> awsArns) {
+    public static void grantMultipleAWSARN(String userEmail, Set<String> awsArns) {
         try {
             Directory service = getDirectory();
+            String userId = fetchEmailToIds().getOrDefault(userEmail, "");
+            if (userId.isEmpty()) { return;}
             User user = service.users().get(userId).setProjection("full").execute();
 
             Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
@@ -256,12 +258,14 @@ public class GSuite {
 
     /**
      * revoke multiple roles to a single user
-     * @param userId -> the user gsuite id
+     * @param userEmail -> the user gsuite id
      * @param awsArns -> list of arns to be added
      */
-    public static void revokeMultipleAWSARN(String userId, Set<String> awsArns) {
+    public static void revokeMultipleAWSARN(String userEmail, Set<String> awsArns) {
         try {
             Directory service = getDirectory();
+            String userId = fetchEmailToIds().getOrDefault(userEmail, "");
+            if (userId.isEmpty()) { return;}
             User user = service.users().get(userId).setProjection("full").execute();
 
             Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
