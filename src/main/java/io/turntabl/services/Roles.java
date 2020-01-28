@@ -24,8 +24,10 @@ public class Roles {
                 .withCredentials(credentialsProvider)
                 .build();
         iam.listRoles().getRoles().forEach(role -> {
+            if ( role.getAssumeRolePolicyDocument().contains("Federated")){
                 BasicRole basicRole = new BasicRole(role.getRoleName(), role.getArn(), role.getDescription());
                 roles.add(basicRole);
+            }
         });
        return roles;
     }
