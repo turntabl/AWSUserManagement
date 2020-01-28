@@ -39,10 +39,10 @@ public class EMail {
         String subject, body;
         if (granted) {
             subject = "AWS Role Permission Request Granted";
-            body = " <p style=\"font-size: 16px;\"> This permissions will last for only 20min. </p>" ;
+            body = " <p style=\"font-size: 16px;\"> This permissions will last for only 10min. </p>" ;
         }else {
             subject = "AWS Role Permission Request Declined";
-            body = " <p style=\"font-size: 16px;\"> Sorry, this request has being declined, contact the administrator sam@turntabl.io</p>";
+            body = " <p style=\"font-size: 16px;\"> Sorry, your request has being declined, contact the administrator sam@turntabl.io</p>";
         }
 
         GmailService.sendMail(userEmail, subject, body);
