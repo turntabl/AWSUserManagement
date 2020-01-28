@@ -95,6 +95,20 @@ public class GSuite {
         return users;
     }
 
+    public static Map<String, String> fetchEmailToUserName() throws IOException, GeneralSecurityException {
+        Map<String, String> users = new HashMap<>();
+        Directory service = getDirectory();
+        Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+        List<User> userList = usersInDomain.execute().getUsers();
+
+        userList.forEach(user -> {
+            if ( user.getOrgUnitPath().equals("/GH Tech")) {
+                users.put(user.getPrimaryEmail(), user.getName().getFullName());
+            }
+        });
+        return users;
+    }
+
 
     /**
      * Grant aws role or policy permission of a user

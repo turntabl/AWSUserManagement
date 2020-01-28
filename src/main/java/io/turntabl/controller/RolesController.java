@@ -20,7 +20,7 @@ import java.util.Set;
 
 @Api
 @RestController
-@CrossOrigin(origins = "*", allowedHeaders = {"GET"} )
+@CrossOrigin(origins = "*")
 public class RolesController {
     @Autowired
     private PermissionStorage permissionStorage;
@@ -31,7 +31,10 @@ public class RolesController {
     public PermissionStatus sendPermission(@RequestBody RolesRequest rolesRequest){
         try {
             long insertId = permissionStorage.insert(rolesRequest.getEmail(), rolesRequest.getAwsArns());
-            EMail.requestMessage(rolesRequest.getEmail(), rolesRequest.getAwsArns(), String.valueOf(insertId));
+            String username = GSuite.fetchEmailToUserName().getOrDefault(rolesRequest.getEmail(), "");
+            if (!username.isEmpty()){
+                EMail.requestMessage(username, rolesRequest.getEmail(), rolesRequest.getAwsArns(), String.valueOf(insertId));
+            }
             return new PermissionStatus(true);
         }catch (Exception e){
             e.printStackTrace();
