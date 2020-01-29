@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Roles {
     private static final ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile(new File("credentials/aws"));
-    private static final ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, "idawud");
+    private static final ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, "turntabl");
 
     public static List<BasicRole> getAllAvailableRoles() {
         List<BasicRole> roles = new ArrayList<>();
@@ -24,8 +24,10 @@ public class Roles {
                 .withCredentials(credentialsProvider)
                 .build();
         iam.listRoles().getRoles().forEach(role -> {
+            if ( role.getAssumeRolePolicyDocument().contains("Federated")){
                 BasicRole basicRole = new BasicRole(role.getRoleName(), role.getArn(), role.getDescription());
                 roles.add(basicRole);
+            }
         });
        return roles;
     }

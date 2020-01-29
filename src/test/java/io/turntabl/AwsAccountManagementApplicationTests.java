@@ -1,12 +1,12 @@
 package io.turntabl;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.PropertySource;
 
-@SpringBootTest
+
+@PropertySource(value = {"classpath:application.properties"})
 class AwsAccountManagementApplicationTests {
 
-	@Test
+	 @Test
 	void contextLoads() { }
-
 }
