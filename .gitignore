@@ -35,3 +35,6 @@ src/main/resources/aws-account-management-265416-84d47f654b81.json
 dump
 .elasticbeanstalk/
 Dockerrun.aws.zip
+.ebextensions/
+deckerDep.zip
+ship.zip
