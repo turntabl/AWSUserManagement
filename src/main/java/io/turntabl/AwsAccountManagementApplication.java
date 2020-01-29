@@ -1,4 +1,4 @@
-package io.turntabl;
+ package io.turntabl;
 
 import io.turntabl.models.Request;
 import io.turntabl.services.EMail;
@@ -61,4 +61,3 @@ public class AwsAccountManagementApplication {
 	}
 
 }
-
