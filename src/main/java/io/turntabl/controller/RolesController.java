@@ -25,7 +25,6 @@ public class RolesController {
     @Autowired
     private PermissionStorage permissionStorage;
 
-
     @ApiOperation("user submits list of aws arns to be given access to..")
     @PostMapping(value = "/v1/api/aws-mgnt/send", consumes = "application/json", produces = "application/json")
     public PermissionStatus sendPermission(@RequestBody RolesRequest rolesRequest){

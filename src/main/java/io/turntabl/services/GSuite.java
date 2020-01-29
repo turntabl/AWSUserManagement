@@ -30,7 +30,7 @@ public class GSuite {
 
 
     /**
-     * Fetch all name and user ids Gsuite Users who are Engineers
+     * Fetch all name and user ids, Gsuite Users Engineers
      * @return ap key -> a users id -> user username
      */
     public static List<UserProfileLight> fetchAllUsers(){
@@ -51,27 +51,6 @@ public class GSuite {
             e.printStackTrace();
             return userProfileLights;
         }
-    }
-
-
-    /**
-     * Fetch all Gsuite Users who are Engineers with all their details
-     * @return Map key -> a users Id Value -> user profile
-     * @throws IOException
-     * @throws GeneralSecurityException
-     */
-    public static Map<String, User> fetchAllUserInfo() throws IOException, GeneralSecurityException {
-        Map<String, User> users = new HashMap<>();
-        Directory service = getDirectory();
-        Directory.Users.List usersInDomain = service.users().list().setDomain(System.getenv("GSUITE_DOMAIN")).setProjection("full");
-        List<User> userList = usersInDomain.execute().getUsers();
-
-        userList.forEach(user -> {
-            if ( user.getOrgUnitPath().equals(System.getenv("GSUITE_OrgUnitPath"))) {
-                users.put(user.getId(), user);
-            }
-        });
-        return users;
     }
 
 
@@ -111,97 +90,7 @@ public class GSuite {
 
 
     /**
-     * Grant aws role or policy permission of a user
-     * @param userId id of Gsuite User
-     * @param awsArn aws Resource Name to be granted permission to
-     * @return boolean true for permission granted successful && false if the permission is already available or something went wrong
-     */
-    public static boolean addSingleAWSARN(String userId, String awsArn){
-        if ( awsArn.trim().startsWith("arn:aws:iam::")) {
-            try {
-                Directory service = getDirectory();
-                User user = service.users().get(userId).setProjection("full").execute();
-
-                Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
-                if (customSchemas != null) {
-                    Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
-                    if (o != null) {
-                        List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
-
-                        if (iam_role != null) {
-                            long count = iam_role.stream().map(role -> (String) role.get("value")).filter(val -> val.trim().startsWith(awsArn.trim())).count();
-                            if (count > 0) {
-                                return false;
-                            }
-
-                            Permission permission = new Permission(awsArn);
-                            iam_role.add(permission.toMap());
-
-                            service.users().update(userId, user).execute();
-                            return true;
-                        }
-                        return false;
-                    }
-                    return false;
-                }
-                return false;
-            } catch (IOException | GeneralSecurityException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
-    }
-
-
-    /**
-     * Revoke aws role or policy permission of a user
-     * @param userId id of Gsuite User
-     * @param awsArn aws Resource Name to be revoked
-     * @return boolean true for permission revoke successful && false if the permission to revoke isn't available or something went wrong
-     */
-    public static boolean revokeSingleAWSARN(String userId, String awsArn){
-        if ( awsArn.trim().startsWith("arn:aws:iam::")) {
-            try {
-                Directory service = getDirectory();
-                User user = service.users().get(userId).setProjection("full").execute();
-                Map<String, Map<String, Object>> customSchemas = user.getCustomSchemas();
-
-                if (customSchemas != null) {
-                    Map<String, Object> o = customSchemas.getOrDefault("AWS_SAML", null);
-                    if (o != null) {
-                        List<Map<String, Object>> iam_role = (List<Map<String, Object>>) o.get("IAM_Role");
-
-                        if (iam_role != null) {
-                            Optional<Map<String, Object>> permision = iam_role.stream().filter(role -> {
-                                String value = (String) role.get("value");
-                                return value.trim().startsWith(awsArn.trim());
-                            }).findFirst();
-
-                            if (permision.isPresent()) {
-                                iam_role.remove(permision.get());
-                                service.users().update(userId, user).execute();
-                                return true;
-                            }
-                            return false;
-                        }
-                        return false;
-                    }
-                    return false;
-                }
-
-                return false;
-            } catch (IOException | GeneralSecurityException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
-    }
-
-
-    /**
-     * Returns a directory instance that is used to get acccess too the resources on the Gsuite account, such as user, grops etc
+     * Returns a directory instance that is used to get access too the resources on the Gsuite account, such as user, grops etc
      * @return Directory
      * @throws IOException
      * @throws GeneralSecurityException

@@ -38,10 +38,11 @@ public class AwsAccountManagementApplication {
 		return new EMail();
 	}
 
-	private long duration = Long.parseLong(System.getenv("PERMISSION_DURATION_IN_MINUTES"));
+
 
 	@Scheduled(fixedDelay = 90000, initialDelay = 300000)
 	public void autoRevokePermission(){
+		long duration = Long.parseLong(System.getenv("PERMISSION_DURATION_IN_MINUTES"));
 		for(Request request : permissionStorage().approvedPermissions()){
 			String raw = request.getApprovedTime();
 			String time = raw.substring(0, raw.lastIndexOf("."));

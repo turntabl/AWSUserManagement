@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class GmailService {
-    private static final String APPLICATION_NAME = "Gmail API ";
+    private static final String APPLICATION_NAME = "Turntabl GSuite Gmail API ";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
     private static final List<String> SCOPES = ImmutableList.of(GmailScopes.GMAIL_SEND, GmailScopes.GMAIL_COMPOSE);
