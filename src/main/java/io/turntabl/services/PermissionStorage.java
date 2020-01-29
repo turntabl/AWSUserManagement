@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 
-import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +18,16 @@ public class PermissionStorage {
     private JdbcTemplate jdbcTemplate;
 
     public PermissionStorage(){ }
-
+  /*  public void create(){
+        jdbcTemplate.execute("CREATE TABLE requests(\n" +
+                "    id serial primary key,\n" +
+                "    status VARCHAR(16) NOT NULL,\n" +
+                "    useremail VARCHAR(128) NOT NULL,\n" +
+                "    approvedtime VARCHAR(128),\n" +
+                "    arn TEXT\n" +
+                ");");
+    }
+*/
     public long insert(String userEmail, Set<String> arnsRequest){
         String arnsString = String.join(" -,,- ", arnsRequest);
 

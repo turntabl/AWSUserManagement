@@ -25,7 +25,7 @@ import java.util.Set;
 public class AwsAccountManagementApplication {
 
 	public static void main(String[] args) {
-         SpringApplication.run(AwsAccountManagementApplication.class, args);
+		 SpringApplication.run(AwsAccountManagementApplication.class, args);
 	}
 
 	@Bean
@@ -38,9 +38,10 @@ public class AwsAccountManagementApplication {
 		return new EMail();
 	}
 
+	private long duration = Long.parseLong(System.getenv("PERMISSION_DURATION_IN_MINUTES"));
+
 	@Scheduled(fixedDelay = 90000, initialDelay = 300000)
 	public void autoRevokePermission(){
-		System.out.println("@Scheduled I'm UP .....");
 		for(Request request : permissionStorage().approvedPermissions()){
 			String raw = request.getApprovedTime();
 			String time = raw.substring(0, raw.lastIndexOf("."));
@@ -49,18 +50,14 @@ public class AwsAccountManagementApplication {
 			LocalDateTime now = LocalDateTime.now();
 
 			long until = dateTime.until(now, ChronoUnit.MINUTES);
-			if ( until >= 10 ){
+			if ( until >= duration ){
 				String userEmail = request.getUserEmail();
 				List<String> strings = Arrays.asList(request.getARN().split(" -,,- "));
 				Set<String> awsArns = new HashSet<>(strings);
 				GSuite.revokeMultipleAWSARN(userEmail, awsArns);
 				permissionStorage().removeRequest(request.getId());
 			}
-			else {
-				System.out.println("NoTHING TO rEVOKE");
-			}
 		}
-		System.out.println("@Scheduled Going down ");
 	}
 
 }

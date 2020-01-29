@@ -54,7 +54,7 @@ public class GmailService {
                 .setTransport(gcFromJson.getTransport())
                 .setJsonFactory(gcFromJson.getJsonFactory())
                 .setServiceAccountId(gcFromJson.getServiceAccountId())
-                .setServiceAccountUser("sam@turntabl.io")
+                .setServiceAccountUser(System.getenv("GSUITE_ADMIN_EMAIL"))
                 .setServiceAccountPrivateKey(gcFromJson.getServiceAccountPrivateKey())
                 .setServiceAccountScopes(gcFromJson.getServiceAccountScopes())
                 .setTokenServerEncodedUrl(gcFromJson.getTokenServerEncodedUrl())

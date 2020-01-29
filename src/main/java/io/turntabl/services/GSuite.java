@@ -37,11 +37,11 @@ public class GSuite {
         List<UserProfileLight> userProfileLights = new ArrayList<>();
         try {
             Directory service = getDirectory();
-            Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+            Directory.Users.List usersInDomain = service.users().list().setDomain(System.getenv("GSUITE_DOMAIN")).setProjection("full");
             List<User> userList = usersInDomain.execute().getUsers();
 
             userList.forEach(user -> {
-                if ( user.getOrgUnitPath().equals("/GH Tech")) {
+                if ( user.getOrgUnitPath().equals(System.getenv("GSUITE_OrgUnitPath"))) {
                     UserProfileLight profileLight = new UserProfileLight( user.getId(), user.getName().getFullName());
                     userProfileLights.add(profileLight);
                 }
@@ -63,11 +63,11 @@ public class GSuite {
     public static Map<String, User> fetchAllUserInfo() throws IOException, GeneralSecurityException {
         Map<String, User> users = new HashMap<>();
         Directory service = getDirectory();
-        Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+        Directory.Users.List usersInDomain = service.users().list().setDomain(System.getenv("GSUITE_DOMAIN")).setProjection("full");
         List<User> userList = usersInDomain.execute().getUsers();
 
         userList.forEach(user -> {
-            if ( user.getOrgUnitPath().equals("/GH Tech")) {
+            if ( user.getOrgUnitPath().equals(System.getenv("GSUITE_OrgUnitPath"))) {
                 users.put(user.getId(), user);
             }
         });
@@ -84,11 +84,11 @@ public class GSuite {
     public static Map<String, String> fetchEmailToIds() throws IOException, GeneralSecurityException {
         Map<String, String> users = new HashMap<>();
         Directory service = getDirectory();
-        Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+        Directory.Users.List usersInDomain = service.users().list().setDomain( System.getenv("GSUITE_DOMAIN")).setProjection("full");
         List<User> userList = usersInDomain.execute().getUsers();
 
         userList.forEach(user -> {
-            if ( user.getOrgUnitPath().equals("/GH Tech")) {
+            if ( user.getOrgUnitPath().equals(System.getenv("GSUITE_OrgUnitPath"))) {
                 users.put(user.getPrimaryEmail(), user.getId());
             }
         });
@@ -98,11 +98,11 @@ public class GSuite {
     public static Map<String, String> fetchEmailToUserName() throws IOException, GeneralSecurityException {
         Map<String, String> users = new HashMap<>();
         Directory service = getDirectory();
-        Directory.Users.List usersInDomain = service.users().list().setDomain("turntabl.io").setProjection("full");
+        Directory.Users.List usersInDomain = service.users().list().setDomain(System.getenv("GSUITE_DOMAIN")).setProjection("full");
         List<User> userList = usersInDomain.execute().getUsers();
 
         userList.forEach(user -> {
-            if ( user.getOrgUnitPath().equals("/GH Tech")) {
+            if ( user.getOrgUnitPath().equals(System.getenv("GSUITE_OrgUnitPath"))) {
                 users.put(user.getPrimaryEmail(), user.getName().getFullName());
             }
         });
@@ -215,7 +215,7 @@ public class GSuite {
                 .setTransport(gcFromJson.getTransport())
                 .setJsonFactory(gcFromJson.getJsonFactory())
                 .setServiceAccountId(gcFromJson.getServiceAccountId())
-                .setServiceAccountUser("sam@turntabl.io")
+                .setServiceAccountUser(System.getenv("GSUITE_ADMIN_EMAIL"))
                 .setServiceAccountPrivateKey(gcFromJson.getServiceAccountPrivateKey())
                 .setServiceAccountScopes(gcFromJson.getServiceAccountScopes())
                 .setTokenServerEncodedUrl(gcFromJson.getTokenServerEncodedUrl())

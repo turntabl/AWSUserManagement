@@ -8,5 +8,39 @@
     {
       "ContainerPort": "5000"
     }
+  ],
+  "environment": [
+    {
+      "name": "GSUITE_ADMIN_EMAIL",
+      "value": "sam@turntabl.io"
+    },
+    {
+      "name": "GSUITE_DOMAIN",
+      "value": "turntabl.io"
+    },
+    {
+      "name": "PERMISSION_DURATION_IN_MINUTES",
+      "value": "10"
+    },
+    {
+      "name": "GSUITE_OrgUnitPath",
+      "value": "/GH Tech"
+    },
+    {
+      "name": "JDBC_DATABASE_URL",
+      "value": "jdbc:postgresql://ec2-52-7-227-199.compute-1.amazonaws.com:5432/dd1lq36q5k0a2o"
+    },
+    {
+      "name": "JDBC_DATABASE_USERNAME",
+      "value": "vnlacpanaqnyet"
+    },
+    {
+      "name": "JDBC_DATABASE_PASSWORD",
+      "value": "044c8a8867047ce5394657efe89739c4377f0496e82768aaa92d3a48ba9ba67a"
+    },
+    {
+      "name": "JDBC_DATABASE_DRIVER",
+      "value": "org.postgresql.Driver"
+    }
   ]
 }
