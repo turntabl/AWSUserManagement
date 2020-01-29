@@ -40,7 +40,7 @@ public class AwsAccountManagementApplication {
 
 
 
-	@Scheduled(fixedDelay = 90000, initialDelay = 300000)
+	@Scheduled(fixedDelay = 120000, initialDelay = 300000) // delay for 5 min on start and run after every 2min
 	public void autoRevokePermission(){
 		long duration = Long.parseLong(System.getenv("PERMISSION_DURATION_IN_MINUTES"));
 		for(Request request : permissionStorage().approvedPermissions()){
